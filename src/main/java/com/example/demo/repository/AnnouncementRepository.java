@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
-    Announcement findByIdAndOwner(Long id, String owner);
+public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
+    Announcement findByIdAndOwner(Integer id, String owner);
     Page<Announcement> findByOwner(String owner, PageRequest pageRequest);
 }

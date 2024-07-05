@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 public class CustomLogoutHandler implements LogoutHandler {
 
     private final TokenRepository tokenRepository;
-
     public CustomLogoutHandler(TokenRepository tokenRepository) {
         this.tokenRepository = tokenRepository;
     }

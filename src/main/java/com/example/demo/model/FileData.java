@@ -7,19 +7,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "ImageData")
+@Table(name = "FILE_DATA")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ImageData {
+public class FileData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     private String name;
     private String type;
-    private Long announcementId;
-    @Lob
-    @Column(name = "imageData", length = 102400)
-    private  byte[] imageData;
+    private Integer announcementId;
+    private  String filePath;
 }

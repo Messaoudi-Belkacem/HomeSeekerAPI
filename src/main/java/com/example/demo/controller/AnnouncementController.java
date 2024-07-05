@@ -1,76 +1,57 @@
 package com.example.demo.controller;
 
+import com.example.demo.excption.BadRequestException;
+import com.example.demo.excption.InternalServerException;
+import com.example.demo.excption.ResourceNotFoundException;
 import com.example.demo.model.Announcement;
-import com.example.demo.model.AnnouncementResponse;
-import com.example.demo.model.AnnouncementWithImages;
-import com.example.demo.model.ImageData;
 import com.example.demo.repository.AnnouncementRepository;
-import com.example.demo.repository.ImageRepository;
 import com.example.demo.service.ImageService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/announcements")
 public class AnnouncementController {
-
     private final AnnouncementRepository announcementRepository;
-    private final ImageRepository imageRepository;
     private final ImageService imageService;
 
-    public AnnouncementController(AnnouncementRepository announcementRepository, ImageRepository imageRepository, ImageService imageService) {
+    // Constructor
+    public AnnouncementController(
+            AnnouncementRepository announcementRepository,
+            ImageService imageService
+    ) {
         this.announcementRepository = announcementRepository;
-        this.imageRepository = imageRepository;
         this.imageService = imageService;
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllAnnouncements(
+    public ResponseEntity<?> getAnnouncementsByPaginationAndSorting(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder) {
-        Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-        Page<Announcement> announcementPage = announcementRepository.findAll(pageable);
-        List<Announcement> announcements = announcementPage.getContent();
-        List<AnnouncementWithImages> announcementsWithImages = new ArrayList<>();
-
-        for (Announcement announcement : announcements) {
-            List<byte[]> images = imageService.downloadImages(announcement.getId());
-            AnnouncementWithImages announcementWithImages = new AnnouncementWithImages(
-                    announcement.getId(),
-                    announcement.getTitle(),
-                    announcement.getArea(),
-                    announcement.getNumberOfRooms(),
-                    announcement.getPropertyType(),
-                    announcement.getLocation(),
-                    announcement.getState(),
-                    announcement.getPrice(),
-                    announcement.getDescription(),
-                    announcement.getOwner(),
-                    images
-            );
-            announcementsWithImages.add(announcementWithImages);
+        try {
+            System.out.println("getAnnouncementsByPaginationAndSorting is called!");
+            Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<Announcement> announcementPage = announcementRepository.findAll(pageable);
+            return new ResponseEntity<>(announcementPage, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid request parameters");
+        } catch (ResourceNotFoundException e) {
+            throw new ResourceNotFoundException("Resource not found");
+        } catch (Exception e) {
+            throw new InternalServerException("An internal server error occurred");
         }
-
-        Page<AnnouncementWithImages> announcementWithImagesPage = new PageImpl<>(announcementsWithImages, pageable, announcementsWithImages.size());
-
-        return new ResponseEntity<>(announcementWithImagesPage, HttpStatus.OK);
-        // TODO Handle the exceptions
     }
 
-    @GetMapping("/user")
+
+    /*@GetMapping("/user")
     private ResponseEntity<?> findAllOwnedAnnouncements(Pageable pageable, Principal principal) {
         Page<Announcement> announcementPage = announcementRepository.findByOwner(principal.getName(),
                 PageRequest.of(
@@ -103,9 +84,9 @@ public class AnnouncementController {
 
         return new ResponseEntity<>(announcementWithImagesPage, HttpStatus.OK);
         // TODO Handle the exceptions
-    }
+    }*/
 
-    @GetMapping("/user/{requestedId}")
+    /*@GetMapping("/user/{requestedId}")
     private ResponseEntity<AnnouncementResponse> findOwnedAnnouncementById(@PathVariable Long requestedId, Principal principal) {
         Optional<Announcement> announcementOptional = Optional.ofNullable(announcementRepository.findByIdAndOwner(requestedId, principal.getName()));
         if (announcementOptional.isPresent()) {
@@ -120,9 +101,9 @@ public class AnnouncementController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @GetMapping("/{id}")
+    /*@GetMapping("/{id}")
     public ResponseEntity<AnnouncementResponse> getAnnouncementById(@PathVariable Long id) {
         Optional<Announcement> announcementOptional = announcementRepository.findById(id);
         if (announcementOptional.isPresent()) {
@@ -137,9 +118,9 @@ public class AnnouncementController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @PostMapping
+    /*@PostMapping
     public ResponseEntity<?> createAnnouncement(
             @RequestPart("data") Announcement announcement,
             @RequestPart("images")List<MultipartFile> multipartFileList,
@@ -175,9 +156,19 @@ public class AnnouncementController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred: " + e.getMessage());
         }
+    }*/
+
+    @PostMapping("/images")
+    public ResponseEntity<?> uploadImageToFIleSystem(
+            @RequestParam("image")MultipartFile file,
+            @RequestParam("announcementId")Integer announcementId
+    ) throws IOException {
+        String uploadImage = imageService.uploadImageToFileSystem(file, announcementId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(uploadImage);
     }
 
-    @PutMapping("/{id}")
+    /*@PutMapping("/{id}")
     public ResponseEntity<?> updateAnnouncement(@PathVariable Long id, @RequestBody Announcement announcementDetails) {
         Optional<Announcement> optionalAnnouncement = announcementRepository.findById(id);
         if (optionalAnnouncement.isPresent()) {
@@ -195,10 +186,10 @@ public class AnnouncementController {
         } else {
             return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
         }
-    }
+    }*/
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAnnouncement(@PathVariable Long id) {
+    public ResponseEntity<?> deleteAnnouncement(@PathVariable Integer id) {
         Optional<Announcement> optionalAnnouncement = announcementRepository.findById(id);
         if (optionalAnnouncement.isPresent()) {
             announcementRepository.deleteById(id);
