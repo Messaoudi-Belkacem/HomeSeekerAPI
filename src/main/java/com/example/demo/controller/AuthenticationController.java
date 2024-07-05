@@ -1,6 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.*;
+import com.example.demo.model.request.CheckTokenRequest;
+import com.example.demo.model.request.LogoutRequest;
+import com.example.demo.model.response.AuthenticationResponse;
+import com.example.demo.model.response.CheckTokenResponse;
+import com.example.demo.model.response.LogoutResponse;
 import com.example.demo.service.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

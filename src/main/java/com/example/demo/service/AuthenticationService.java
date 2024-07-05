@@ -2,6 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.excption.TokenNotFoundException;
 import com.example.demo.model.*;
+import com.example.demo.model.request.CheckTokenRequest;
+import com.example.demo.model.request.LogoutRequest;
+import com.example.demo.model.response.AuthenticationResponse;
+import com.example.demo.model.response.CheckTokenResponse;
+import com.example.demo.model.response.LogoutResponse;
 import com.example.demo.repository.TokenRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -7,15 +7,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ImageService {
     @Autowired
     private FileDataRepository fileDataRepository;
-    private final String FOLDER_PATH="/Users/HP/IdeaProjects/demo/images";
 
 
     /*public String uploadImage(MultipartFile multipartFile, Long announcementId) throws IOException {
@@ -47,23 +49,31 @@ public class ImageService {
     }*/
 
     public String uploadImageToFileSystem(MultipartFile file, Integer announcementId) throws IOException {
-        String filePath = FOLDER_PATH+file.getOriginalFilename();
-        FileData fileData=fileDataRepository.save(FileData.builder()
+        String FOLDER_PATH = "C:/Users/HP/IdeaProjects/demo/images/";
+        String filePath = FOLDER_PATH +file.getOriginalFilename();
+        fileDataRepository.save(FileData.builder()
                 .name(file.getOriginalFilename())
                 .type(file.getContentType())
                 .announcementId(announcementId)
                 .filePath(filePath).build());
         file.transferTo(new File(filePath));
-        if (fileData != null) {
-            return "file uploaded successfully : " + filePath;
-        }
-        return null;
+        return "file uploaded successfully : " + filePath;
     }
 
     public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
         Optional<FileData> fileData = fileDataRepository.findByName(fileName);
-        String filePath=fileData.get().getFilePath();
-        byte[] images = Files.readAllBytes(new File(filePath).toPath());
-        return images;
+        if (fileData.isPresent()) {
+            String filePath = fileData.get().getFilePath();
+            return Files.readAllBytes(new File(filePath).toPath());
+        } else throw new FileNotFoundException("File not found: " + fileName);
+    }
+
+    public List<String> getImageFileNamesFromFileSystem(Integer announcementId) {
+        List<FileData> fileDataList = fileDataRepository.findByAnnouncementId(announcementId);
+        List<String> fileNames = new ArrayList<>();
+        for (FileData fileData : fileDataList) {
+            fileNames.add(fileData.getName());
+        }
+        return fileNames;
     }
 }

@@ -1,9 +1,7 @@
 package com.example.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.demo.util.StringListConverter;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,4 +28,6 @@ public class Announcement {
     double price;
     String description;
     String owner;
+    @Convert(converter = StringListConverter.class)
+    List<String> imageNames = new ArrayList<>();
 }

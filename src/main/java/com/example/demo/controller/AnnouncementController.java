@@ -8,10 +8,13 @@ import com.example.demo.repository.AnnouncementRepository;
 import com.example.demo.service.ImageService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,6 +32,7 @@ public class AnnouncementController {
         this.imageService = imageService;
     }
 
+    // Get
     @GetMapping
     public ResponseEntity<?> getAnnouncementsByPaginationAndSorting(
             @RequestParam(defaultValue = "0") int page,
@@ -50,6 +54,13 @@ public class AnnouncementController {
         }
     }
 
+    @GetMapping("/images/{fileName}")
+    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = imageService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/jpeg"))
+                .body(imageData);
+    }
 
     /*@GetMapping("/user")
     private ResponseEntity<?> findAllOwnedAnnouncements(Pageable pageable, Principal principal) {
@@ -120,35 +131,21 @@ public class AnnouncementController {
         }
     }*/
 
-    /*@PostMapping
+    @PostMapping
     public ResponseEntity<?> createAnnouncement(
             @RequestPart("data") Announcement announcement,
-            @RequestPart("images")List<MultipartFile> multipartFileList,
+            @RequestPart("images") List<MultipartFile> multipartFileList,
             Principal principal
     ) {
+        System.out.println("createAnnouncement is called!");
         try {
             StringBuilder response = new StringBuilder();
             announcement.setOwner(principal.getName());
             Announcement savedAnnouncement = announcementRepository.save(announcement);
             for (MultipartFile item : multipartFileList) {
-                response.append(imageService.uploadImage(item, savedAnnouncement.getId()));
+                response.append(imageService.uploadImageToFileSystem(item, savedAnnouncement.getId()));
             }
-            List<byte[]> images = imageService.downloadImages(announcement.getId());
-            AnnouncementWithImages announcementWithImages = new AnnouncementWithImages(
-                    announcement.getId(),
-                    announcement.getTitle(),
-                    announcement.getArea(),
-                    announcement.getNumberOfRooms(),
-                    announcement.getPropertyType(),
-                    announcement.getLocation(),
-                    announcement.getState(),
-                    announcement.getPrice(),
-                    announcement.getDescription(),
-                    announcement.getOwner(),
-                    images
-            );
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(announcementWithImages);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Announcement created successfully and response: " + response);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error occurred while processing files: " + e.getMessage());
@@ -156,7 +153,7 @@ public class AnnouncementController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred: " + e.getMessage());
         }
-    }*/
+    }
 
     @PostMapping("/images")
     public ResponseEntity<?> uploadImageToFIleSystem(
