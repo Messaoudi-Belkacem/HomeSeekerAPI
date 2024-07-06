@@ -26,7 +26,6 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
-
     public boolean isValid(String token, UserDetails user) {
         String username = extractUsername(token);
 
@@ -54,7 +53,7 @@ public class JwtService {
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
-                .verifyWith(getSigninKey())
+                .verifyWith(getSignInKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -67,13 +66,13 @@ public class JwtService {
                 .subject(user.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 24*60*60*1000 ))
-                .signWith(getSigninKey())
+                .signWith(getSignInKey())
                 .compact();
 
         return token;
     }
 
-    private SecretKey getSigninKey() {
+    private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64URL.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }

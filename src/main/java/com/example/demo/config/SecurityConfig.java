@@ -1,7 +1,7 @@
 package com.example.demo.config;
 
 import com.example.demo.filter.JwtAuthenticationFilter;
-import com.example.demo.service.UserDetailsServiceImpl;
+import com.example.demo.service.UserDetailsServiceImplementation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -22,11 +22,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsServiceImp;
+    private final UserDetailsServiceImplementation userDetailsServiceImp;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomLogoutHandler logoutHandler;
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsServiceImp,
+    public SecurityConfig(UserDetailsServiceImplementation userDetailsServiceImp,
                           JwtAuthenticationFilter jwtAuthenticationFilter,
                           CustomLogoutHandler logoutHandler) {
         this.userDetailsServiceImp = userDetailsServiceImp;

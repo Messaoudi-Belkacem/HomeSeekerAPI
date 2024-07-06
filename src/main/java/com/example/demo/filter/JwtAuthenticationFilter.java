@@ -1,7 +1,7 @@
 package com.example.demo.filter;
 
 import com.example.demo.service.JwtService;
-import com.example.demo.service.UserDetailsServiceImpl;
+import com.example.demo.service.UserDetailsServiceImplementation;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +20,10 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImplementation userDetailsService;
 
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsServiceImplementation userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
