@@ -22,10 +22,13 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/user")
+    @GetMapping()
     public ResponseEntity<GetUserDetailsResponse> getUserDetails(@RequestParam String token) {
         try {
+            System.out.println("getUserDetails is called");
+            System.out.println("token: " + token);
             String username = jwtService.extractUsername(token);
+            System.out.println("username: " + username);
             User user = (User) userDetailsServiceImplementation.loadUserByUsername(username);
             GetUserDetailsResponse getUserDetailsResponse = new GetUserDetailsResponse(user, "User fetched successfully");
             return ResponseEntity.ok(getUserDetailsResponse);
