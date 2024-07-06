@@ -37,8 +37,8 @@ public class User implements UserDetails {
     private String password;
 
     @Setter
-    @Column(name = "phone_number")
-    private String phoneNumber;
+    @Column(name = "phone")
+    private String phone;
 
     @Setter
     @Enumerated(value = EnumType.STRING)
