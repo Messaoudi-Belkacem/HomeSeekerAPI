@@ -4,7 +4,9 @@ import com.example.demo.excption.BadRequestException;
 import com.example.demo.excption.InternalServerException;
 import com.example.demo.excption.ResourceNotFoundException;
 import com.example.demo.model.Announcement;
+import com.example.demo.model.response.CreateAnnouncementResponse;
 import com.example.demo.repository.AnnouncementRepository;
+import com.example.demo.service.AnnouncementService;
 import com.example.demo.service.ImageService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -20,16 +22,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/announcements")
 public class AnnouncementController {
+
     private final AnnouncementRepository announcementRepository;
     private final ImageService imageService;
+    private final AnnouncementService announcementService;
 
     // Constructor
     public AnnouncementController(
             AnnouncementRepository announcementRepository,
-            ImageService imageService
+            ImageService imageService,
+            AnnouncementService announcementService
     ) {
         this.announcementRepository = announcementRepository;
         this.imageService = imageService;
+        this.announcementService = announcementService;
     }
 
     // Get
@@ -132,12 +138,24 @@ public class AnnouncementController {
     }*/
 
     @PostMapping
-    public ResponseEntity<?> createAnnouncement(
+    public ResponseEntity<CreateAnnouncementResponse> createAnnouncement(
             @RequestPart("data") Announcement announcement,
             @RequestPart("images") List<MultipartFile> multipartFileList,
             Principal principal
     ) {
         System.out.println("createAnnouncement is called!");
+        try {
+            Announcement announcementResponse = announcementService.createAnnouncement(announcement, multipartFileList, principal);
+            CreateAnnouncementResponse createAnnouncementResponse = new CreateAnnouncementResponse(announcementResponse, "announcement created successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(createAnnouncementResponse);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CreateAnnouncementResponse(null, "Error occurred while processing files: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CreateAnnouncementResponse(null, "An error occurred: " + e.getMessage()));
+        }
+        /*System.out.println("createAnnouncement is called!");
         try {
             StringBuilder response = new StringBuilder();
             announcement.setOwner(principal.getName());
@@ -152,7 +170,7 @@ public class AnnouncementController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred: " + e.getMessage());
-        }
+        }*/
     }
 
     @PostMapping("/images")
