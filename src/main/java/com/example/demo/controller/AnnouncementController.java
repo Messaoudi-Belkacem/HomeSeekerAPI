@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/announcements")
@@ -68,74 +67,19 @@ public class AnnouncementController {
                 .body(imageData);
     }
 
-    /*@GetMapping("/user")
-    private ResponseEntity<?> findAllOwnedAnnouncements(Pageable pageable, Principal principal) {
-        Page<Announcement> announcementPage = announcementRepository.findByOwner(principal.getName(),
-                PageRequest.of(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        pageable.getSortOr(Sort.by(Sort.Direction.ASC, "amount"))
-                ));
-        List<Announcement> announcements = announcementPage.getContent();
-        List<AnnouncementWithImages> announcementsWithImages = new ArrayList<>();
-
-        for (Announcement announcement : announcements) {
-            List<byte[]> images = imageService.downloadImages(announcement.getId());
-            AnnouncementWithImages announcementWithImages = new AnnouncementWithImages(
-                    announcement.getId(),
-                    announcement.getTitle(),
-                    announcement.getArea(),
-                    announcement.getNumberOfRooms(),
-                    announcement.getPropertyType(),
-                    announcement.getLocation(),
-                    announcement.getState(),
-                    announcement.getPrice(),
-                    announcement.getDescription(),
-                    announcement.getOwner(),
-                    images
-            );
-            announcementsWithImages.add(announcementWithImages);
-        }
-
-        Page<AnnouncementWithImages> announcementWithImagesPage = new PageImpl<>(announcementsWithImages, pageable, announcementsWithImages.size());
-
-        return new ResponseEntity<>(announcementWithImagesPage, HttpStatus.OK);
+    @GetMapping("/user")
+    private ResponseEntity<?> getAllOwnedAnnouncements(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            Principal principal
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortOrder, sortBy));
+        Page<Announcement> announcements = announcementService.getAllAnnouncementsByUser(pageable, principal);
+        return new ResponseEntity<>(announcements, HttpStatus.OK);
         // TODO Handle the exceptions
-    }*/
-
-    /*@GetMapping("/user/{requestedId}")
-    private ResponseEntity<AnnouncementResponse> findOwnedAnnouncementById(@PathVariable Long requestedId, Principal principal) {
-        Optional<Announcement> announcementOptional = Optional.ofNullable(announcementRepository.findByIdAndOwner(requestedId, principal.getName()));
-        if (announcementOptional.isPresent()) {
-            Announcement announcement = announcementOptional.get();
-            List<byte[]> images = imageService.downloadImages(announcement.getId());
-
-            AnnouncementResponse response = new AnnouncementResponse();
-            response.setAnnouncement(announcement);
-            response.setImages(images);
-
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }*/
-
-    /*@GetMapping("/{id}")
-    public ResponseEntity<AnnouncementResponse> getAnnouncementById(@PathVariable Long id) {
-        Optional<Announcement> announcementOptional = announcementRepository.findById(id);
-        if (announcementOptional.isPresent()) {
-            Announcement announcement = announcementOptional.get();
-            List<byte[]> images = imageService.downloadImages(announcement.getId());
-
-            AnnouncementResponse response = new AnnouncementResponse();
-            response.setAnnouncement(announcement);
-            response.setImages(images);
-
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }*/
+    }
 
     @PostMapping
     public ResponseEntity<CreateAnnouncementResponse> createAnnouncement(
@@ -203,14 +147,11 @@ public class AnnouncementController {
         }
     }*/
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAnnouncement(@PathVariable Integer id) {
-        Optional<Announcement> optionalAnnouncement = announcementRepository.findById(id);
-        if (optionalAnnouncement.isPresent()) {
-            announcementRepository.deleteById(id);
-            return new ResponseEntity<>("Announcement deleted successfully", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Announcement not found", HttpStatus.NOT_FOUND);
-        }
+    @DeleteMapping
+    public ResponseEntity<?> deleteAnnouncement(
+            @RequestParam Integer announcementId,
+            Principal principal
+    ) {
+        return announcementService.deleteAnnouncement(principal, announcementId);
     }
 }
