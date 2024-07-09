@@ -27,6 +27,7 @@ public class Announcement {
     String state;
     double price;
     String description;
+    int views;
     String owner;
     @Convert(converter = StringListConverter.class)
     List<String> imageNames = new ArrayList<>();

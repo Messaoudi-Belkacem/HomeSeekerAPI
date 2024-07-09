@@ -1,10 +1,14 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.AnnouncementController;
 import com.example.demo.model.Announcement;
 import com.example.demo.model.User;
 import com.example.demo.model.response.DeleteAnnouncementResponse;
+import com.example.demo.model.response.UpdateAnnouncementViewsResponse;
 import com.example.demo.repository.AnnouncementRepository;
 import com.example.demo.repository.FileDataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +26,9 @@ import java.util.Optional;
 
 @Service
 public class AnnouncementService {
+
+    Logger logger = LoggerFactory.getLogger(AnnouncementService.class.getName());
+
     @Autowired
     private AnnouncementRepository announcementRepository;
 
@@ -71,4 +78,20 @@ public class AnnouncementService {
         }
     }
 
+    public ResponseEntity<UpdateAnnouncementViewsResponse> incrementAnnouncementViews(int announcementId) {
+        logger.trace("incrementAnnouncementViews is called");
+        Optional<Announcement> optionalAnnouncement = announcementRepository.findById(announcementId);
+        if (optionalAnnouncement.isPresent()) {
+            optionalAnnouncement.get().setViews(optionalAnnouncement.get().getViews() + 1);
+            Announcement savedAnnouncement = announcementRepository.save(optionalAnnouncement.get());
+            UpdateAnnouncementViewsResponse updateAnnouncementViewsResponse;
+            updateAnnouncementViewsResponse = new UpdateAnnouncementViewsResponse(savedAnnouncement, "Announcement views updated successfully");
+            logger.trace("Announcement found and the views have been incremented successfully");
+            return new ResponseEntity<>(updateAnnouncementViewsResponse, HttpStatus.OK);
+        } else {
+            logger.error("Announcement not found");
+            UpdateAnnouncementViewsResponse updateAnnouncementViewsResponse = new UpdateAnnouncementViewsResponse(null, "Announcement not found");
+            return new ResponseEntity<>(updateAnnouncementViewsResponse, HttpStatus.NOT_FOUND);
+        }
+    }
 }

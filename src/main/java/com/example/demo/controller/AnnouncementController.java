@@ -165,6 +165,20 @@ public class AnnouncementController {
         }
     }*/
 
+    @PatchMapping("/views")
+    public ResponseEntity<?> incrementAnnouncementViews(@RequestParam int announcementID) {
+        logger.trace("incrementAnnouncementViews is called!");
+        try {
+            return announcementService.incrementAnnouncementViews(announcementID);
+        } catch (ResourceNotFoundException e) {
+            logger.error(e.getMessage());
+            throw new ResourceNotFoundException("Resource not found");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new InternalServerException("An internal server error occurred");
+        }
+    }
+
     // Delete
     @DeleteMapping
     public ResponseEntity<?> deleteAnnouncement(
