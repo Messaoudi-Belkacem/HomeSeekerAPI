@@ -89,8 +89,39 @@ public class AnnouncementController {
         }
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> getAnnouncementsByQuery(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @RequestParam String query
+    ) {
+        logger.trace("getAnnouncementsByQuery is called!");
+        try {
+            Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+            Page<Announcement> announcementsPage;
+            announcementsPage = announcementService.getAllAnnouncementsByQuery(pageable, query);
+
+            return new ResponseEntity<>(announcementsPage, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
+            throw new BadRequestException("Invalid request parameters");
+        } catch (ResourceNotFoundException e) {
+            logger.error(e.getMessage());
+            throw new ResourceNotFoundException("Resource not found");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new InternalServerException("An internal server error occurred");
+        }
+    }
+
+
     @GetMapping("/images/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+        logger.trace("downloadImageFromFileSystem is called with a file name: {}", fileName);
         byte[] imageData = imageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/jpeg"))
@@ -105,15 +136,17 @@ public class AnnouncementController {
             @RequestPart("images") List<MultipartFile> multipartFileList,
             Principal principal
     ) {
-        System.out.println("createAnnouncement is called!");
+        logger.trace("createAnnouncement is called!");
         try {
             Announcement announcementResponse = announcementService.createAnnouncement(announcement, multipartFileList, principal);
             CreateAnnouncementResponse createAnnouncementResponse = new CreateAnnouncementResponse(announcementResponse, "announcement created successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(createAnnouncementResponse);
         } catch (IOException e) {
+            logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CreateAnnouncementResponse(null, "Error occurred while processing files: " + e.getMessage()));
         } catch (Exception e) {
+            logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CreateAnnouncementResponse(null, "An error occurred: " + e.getMessage()));
         }
@@ -140,6 +173,7 @@ public class AnnouncementController {
             @RequestParam("image")MultipartFile file,
             @RequestParam("announcementId")Integer announcementId
     ) throws IOException {
+        logger.trace("uploadImageToFileSystem is called!");
         String uploadImage = imageService.uploadImageToFileSystem(file, announcementId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(uploadImage);
@@ -166,10 +200,10 @@ public class AnnouncementController {
     }*/
 
     @PatchMapping("/views")
-    public ResponseEntity<?> incrementAnnouncementViews(@RequestParam int announcementID) {
+    public ResponseEntity<?> incrementAnnouncementViews(@RequestParam int announcementId) {
         logger.trace("incrementAnnouncementViews is called!");
         try {
-            return announcementService.incrementAnnouncementViews(announcementID);
+            return announcementService.incrementAnnouncementViews(announcementId);
         } catch (ResourceNotFoundException e) {
             logger.error(e.getMessage());
             throw new ResourceNotFoundException("Resource not found");
@@ -185,6 +219,7 @@ public class AnnouncementController {
             @RequestParam Integer announcementId,
             Principal principal
     ) {
+        logger.trace("deleteAnnouncement is called!");
         return announcementService.deleteAnnouncement(principal, announcementId);
     }
 }

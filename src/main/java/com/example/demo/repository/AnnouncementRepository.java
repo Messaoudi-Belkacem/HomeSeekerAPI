@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
     Page<Announcement> findByOwner(String owner, PageRequest pageRequest);
+    Page<Announcement> findByTitleContainingIgnoreCase(String title, PageRequest pageRequest);
 }

@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,19 +36,6 @@ public class AnnouncementService {
     @Autowired
     private ImageService imageService;
 
-    public Announcement createAnnouncement(
-            Announcement announcement,
-            List<MultipartFile> multipartFileList,
-            Principal principal
-    ) throws IOException {
-        announcement.setOwner(principal.getName());
-        Announcement savedAnnouncement = announcementRepository.save(announcement);
-        for (MultipartFile item : multipartFileList) {
-            imageService.uploadImageToFileSystem(item, savedAnnouncement.getId());
-        }
-        return announcement;
-    }
-
     public Page<Announcement> getAllAnnouncementsByUser(Pageable pageable, Principal principal) {
         Page<Announcement> announcementsPage;
         announcementsPage = announcementRepository.findByOwner(
@@ -59,6 +47,32 @@ public class AnnouncementService {
                 )
         );
         return announcementsPage;
+    }
+
+    public Page<Announcement> getAllAnnouncementsByQuery(Pageable pageable, String query) {
+        Page<Announcement> announcementsPage;
+        announcementsPage = announcementRepository.findByTitleContainingIgnoreCase(
+                query,
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getSortOr(Sort.by(Sort.Direction.ASC, "title"))
+                )
+        );
+        return announcementsPage;
+    }
+
+    public Announcement createAnnouncement(
+            Announcement announcement,
+            List<MultipartFile> multipartFileList,
+            Principal principal
+    ) throws IOException {
+        announcement.setOwner(principal.getName());
+        Announcement savedAnnouncement = announcementRepository.save(announcement);
+        for (MultipartFile item : multipartFileList) {
+            imageService.uploadImageToFileSystem(item, savedAnnouncement.getId());
+        }
+        return announcement;
     }
 
     public ResponseEntity<DeleteAnnouncementResponse> deleteAnnouncement(Principal principal, Integer announcementId) {
