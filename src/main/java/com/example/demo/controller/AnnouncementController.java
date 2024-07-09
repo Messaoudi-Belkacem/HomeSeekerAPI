@@ -8,6 +8,8 @@ import com.example.demo.model.response.CreateAnnouncementResponse;
 import com.example.demo.repository.AnnouncementRepository;
 import com.example.demo.service.AnnouncementService;
 import com.example.demo.service.ImageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +27,8 @@ public class AnnouncementController {
     private final AnnouncementRepository announcementRepository;
     private final ImageService imageService;
     private final AnnouncementService announcementService;
+
+    Logger logger = LoggerFactory.getLogger(AnnouncementController.class.getName());
 
     // Constructor
     public AnnouncementController(
@@ -45,16 +49,42 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "title") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder) {
         try {
-            System.out.println("getAnnouncementsByPaginationAndSorting is called!");
-            Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            Page<Announcement> announcementPage = announcementRepository.findAll(pageable);
-            return new ResponseEntity<>(announcementPage, HttpStatus.OK);
+            logger.trace("getAnnouncementsByPaginationAndSorting is called!");
+            Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<Announcement> announcementsPage = announcementRepository.findAll(pageable);
+            return new ResponseEntity<>(announcementsPage, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid request parameters");
         } catch (ResourceNotFoundException e) {
             throw new ResourceNotFoundException("Resource not found");
         } catch (Exception e) {
+            throw new InternalServerException("An internal server error occurred");
+        }
+    }
+
+    @GetMapping("/user")
+    private ResponseEntity<?> getAllOwnedAnnouncements(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            Principal principal
+    ) {
+        logger.trace("getAllOwnedAnnouncements is called!");
+        try {
+            Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<Announcement> announcementsPage = announcementService.getAllAnnouncementsByUser(pageable, principal);
+            return new ResponseEntity<>(announcementsPage, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
+            throw new BadRequestException("Invalid request parameters");
+        } catch (ResourceNotFoundException e) {
+            logger.error(e.getMessage());
+            throw new ResourceNotFoundException("Resource not found");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
             throw new InternalServerException("An internal server error occurred");
         }
     }
@@ -67,20 +97,8 @@ public class AnnouncementController {
                 .body(imageData);
     }
 
-    @GetMapping("/user")
-    private ResponseEntity<?> getAllOwnedAnnouncements(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder,
-            Principal principal
-    ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortOrder, sortBy));
-        Page<Announcement> announcements = announcementService.getAllAnnouncementsByUser(pageable, principal);
-        return new ResponseEntity<>(announcements, HttpStatus.OK);
-        // TODO Handle the exceptions
-    }
 
+    // Post
     @PostMapping
     public ResponseEntity<CreateAnnouncementResponse> createAnnouncement(
             @RequestPart("data") Announcement announcement,
@@ -147,6 +165,7 @@ public class AnnouncementController {
         }
     }*/
 
+    // Delete
     @DeleteMapping
     public ResponseEntity<?> deleteAnnouncement(
             @RequestParam Integer announcementId,
