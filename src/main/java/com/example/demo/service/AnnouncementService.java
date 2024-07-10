@@ -36,6 +36,19 @@ public class AnnouncementService {
     @Autowired
     private ImageService imageService;
 
+    public Page<Announcement> getAllAnnouncements(Pageable pageable) {
+        logger.trace("getAllAnnouncements is called");
+        Page<Announcement> announcementsPage;
+        announcementsPage = announcementRepository.findAll(
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getSortOr(Sort.by(Sort.Direction.ASC, "title"))
+                )
+        );
+        return announcementsPage;
+    }
+
     public Page<Announcement> getAllAnnouncementsByUser(Pageable pageable, Principal principal) {
         Page<Announcement> announcementsPage;
         announcementsPage = announcementRepository.findByOwner(

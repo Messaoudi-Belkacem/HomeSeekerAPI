@@ -5,7 +5,6 @@ import com.example.demo.excption.InternalServerException;
 import com.example.demo.excption.ResourceNotFoundException;
 import com.example.demo.model.Announcement;
 import com.example.demo.model.response.CreateAnnouncementResponse;
-import com.example.demo.repository.AnnouncementRepository;
 import com.example.demo.service.AnnouncementService;
 import com.example.demo.service.ImageService;
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import java.util.List;
 @RequestMapping("/announcements")
 public class AnnouncementController {
 
-    private final AnnouncementRepository announcementRepository;
     private final ImageService imageService;
     private final AnnouncementService announcementService;
 
@@ -32,11 +30,9 @@ public class AnnouncementController {
 
     // Constructor
     public AnnouncementController(
-            AnnouncementRepository announcementRepository,
             ImageService imageService,
             AnnouncementService announcementService
     ) {
-        this.announcementRepository = announcementRepository;
         this.imageService = imageService;
         this.announcementService = announcementService;
     }
@@ -52,13 +48,16 @@ public class AnnouncementController {
             logger.trace("getAnnouncementsByPaginationAndSorting is called!");
             Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-            Page<Announcement> announcementsPage = announcementRepository.findAll(pageable);
+            Page<Announcement> announcementsPage = announcementService.getAllAnnouncements(pageable);
             return new ResponseEntity<>(announcementsPage, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
             throw new BadRequestException("Invalid request parameters");
         } catch (ResourceNotFoundException e) {
+            logger.error(e.getMessage());
             throw new ResourceNotFoundException("Resource not found");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             throw new InternalServerException("An internal server error occurred");
         }
     }
