@@ -4,9 +4,11 @@ import com.example.demo.excption.BadRequestException;
 import com.example.demo.excption.InternalServerException;
 import com.example.demo.excption.ResourceNotFoundException;
 import com.example.demo.model.Announcement;
+import com.example.demo.model.User;
 import com.example.demo.model.response.CreateAnnouncementResponse;
 import com.example.demo.service.AnnouncementService;
 import com.example.demo.service.ImageService;
+import com.example.demo.service.UserDetailsServiceImplementation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
@@ -25,16 +27,18 @@ public class AnnouncementController {
 
     private final ImageService imageService;
     private final AnnouncementService announcementService;
+    private final UserDetailsServiceImplementation userDetailsServiceImplementation;
 
     Logger logger = LoggerFactory.getLogger(AnnouncementController.class.getName());
 
     // Constructor
     public AnnouncementController(
             ImageService imageService,
-            AnnouncementService announcementService
+            AnnouncementService announcementService, UserDetailsServiceImplementation userDetailsServiceImplementation
     ) {
         this.imageService = imageService;
         this.announcementService = announcementService;
+        this.userDetailsServiceImplementation = userDetailsServiceImplementation;
     }
 
     // Get
@@ -43,7 +47,8 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder) {
+            @RequestParam(defaultValue = "asc") String sortOrder
+    ) {
         try {
             logger.trace("getAnnouncementsByPaginationAndSorting is called!");
             Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -117,7 +122,6 @@ public class AnnouncementController {
         }
     }
 
-
     @GetMapping("/images/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
         logger.trace("downloadImageFromFileSystem is called with a file name: {}", fileName);
@@ -126,7 +130,6 @@ public class AnnouncementController {
                 .contentType(MediaType.valueOf("image/jpeg"))
                 .body(imageData);
     }
-
 
     // Post
     @PostMapping
@@ -137,6 +140,8 @@ public class AnnouncementController {
     ) {
         logger.trace("createAnnouncement is called!");
         try {
+            User user = (User) userDetailsServiceImplementation.loadUserByUsername(principal.getName());
+            announcement.setAuthorPhone(user.getPhone());
             Announcement announcementResponse = announcementService.createAnnouncement(announcement, multipartFileList, principal);
             CreateAnnouncementResponse createAnnouncementResponse = new CreateAnnouncementResponse(announcementResponse, "announcement created successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(createAnnouncementResponse);

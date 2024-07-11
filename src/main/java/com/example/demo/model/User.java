@@ -40,7 +40,7 @@ public class User implements UserDetails {
 
     @Setter
     @Column(name = "phone")
-    private String phone;
+    private int phone;
 
     @Setter
     @Enumerated(value = EnumType.STRING)
