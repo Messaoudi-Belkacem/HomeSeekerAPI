@@ -59,7 +59,7 @@ public class UserController {
             String token = patchUserDetailsRequest.token();
             String username = jwtService.extractUsername(token);
             User updates = patchUserDetailsRequest.user();
-            logger.trace("updates: {}", updates);
+            logger.trace("updates: {}", updates.toString());
             User updatedUser = (User) userDetailsServiceImplementation.updateUser(updates, username);
             if (Objects.equals(updatedUser.getId(), updates.getId())) {
                 PatchUserDetailsResponse response = new PatchUserDetailsResponse(updatedUser, "User fetched successfully");

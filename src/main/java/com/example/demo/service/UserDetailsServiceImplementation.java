@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.UserController;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +17,8 @@ public class UserDetailsServiceImplementation implements UserDetailsService {
 
     private final UserRepository repository;
 
+    Logger logger = LoggerFactory.getLogger(UserDetailsServiceImplementation.class.getName());
+
     public UserDetailsServiceImplementation(UserRepository repository) {
         this.repository = repository;
     }
@@ -24,7 +29,9 @@ public class UserDetailsServiceImplementation implements UserDetailsService {
     }
 
     public UserDetails updateUser(User updates, String username) {
-        System.out.println("updateUser is called");
+        logger.trace("updateUser is called");
+        logger.trace("username: {}", username);
+        logger.trace("updates: {}", updates.toString());
         Optional<User> user = repository.findByUsername(username);
         if(user.isPresent())
         {

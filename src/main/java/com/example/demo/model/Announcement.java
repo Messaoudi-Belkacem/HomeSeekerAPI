@@ -29,7 +29,7 @@ public class Announcement {
     String description;
     int views;
     String owner;
-    int authorPhone;
+    String authorPhone;
     @Convert(converter = StringListConverter.class)
     List<String> imageNames = new ArrayList<>();
 }

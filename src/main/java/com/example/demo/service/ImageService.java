@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.AnnouncementController;
 import com.example.demo.model.FileData;
 import com.example.demo.repository.FileDataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +21,8 @@ import java.util.Optional;
 public class ImageService {
     @Autowired
     private FileDataRepository fileDataRepository;
+
+    Logger logger = LoggerFactory.getLogger(ImageService.class.getName());
 
 
     /*public String uploadImage(MultipartFile multipartFile, Long announcementId) throws IOException {
@@ -50,7 +55,7 @@ public class ImageService {
 
     public String uploadImageToFileSystem(MultipartFile file, Integer announcementId) throws IOException {
         String FOLDER_PATH = "C:/Users/HP/IdeaProjects/demo/images/";
-        String filePath = FOLDER_PATH +file.getOriginalFilename();
+        String filePath = FOLDER_PATH + file.getOriginalFilename();
         fileDataRepository.save(FileData.builder()
                 .name(file.getOriginalFilename())
                 .type(file.getContentType())
@@ -61,11 +66,22 @@ public class ImageService {
     }
 
     public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
-        Optional<FileData> fileData = fileDataRepository.findByName(fileName);
-        if (fileData.isPresent()) {
-            String filePath = fileData.get().getFilePath();
+        try {
+            List<FileData> fileDataList = fileDataRepository.findByName(fileName);
+            if (fileDataList.isEmpty()) {
+                throw new FileNotFoundException("File not found: " + fileName);
+            }
+            FileData fileData = fileDataList.get(0);
+            String filePath = fileData.getFilePath();
             return Files.readAllBytes(new File(filePath).toPath());
-        } else throw new FileNotFoundException("File not found: " + fileName);
+        } catch (FileNotFoundException e) {
+            logger.error("File not found: {}", fileName);
+            throw new FileNotFoundException("File not found: " + fileName);
+        }
+        catch (Exception e) {
+            logger.error(e.getMessage());
+            return null;
+        }
     }
 
     public List<String> getImageFileNamesFromFileSystem(Integer announcementId) {

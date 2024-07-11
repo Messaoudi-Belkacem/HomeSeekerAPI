@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FileDataRepository extends JpaRepository<FileData, Integer> {
-    Optional<FileData> findByName(String fileName);
+    List<FileData> findByName(String fileName);
     List<FileData> findByAnnouncementId(Integer announcementId);
 }

@@ -51,9 +51,11 @@ public class AnnouncementController {
     ) {
         try {
             logger.trace("getAnnouncementsByPaginationAndSorting is called!");
+            logger.trace("page: {}, size: {}, sortBy: {}, sortOrder: {}", page, size, sortBy, sortOrder);
             Sort.Direction sortDirection = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
             Page<Announcement> announcementsPage = announcementService.getAllAnnouncements(pageable);
+            logger.trace("announcementsPage: {}", announcementsPage.toString());
             return new ResponseEntity<>(announcementsPage, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             logger.error(e.getMessage());

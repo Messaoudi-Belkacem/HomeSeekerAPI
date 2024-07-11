@@ -40,7 +40,7 @@ public class User implements UserDetails {
 
     @Setter
     @Column(name = "phone")
-    private int phone;
+    private String phone;
 
     @Setter
     @Enumerated(value = EnumType.STRING)
@@ -76,4 +76,17 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", phone=" + phone +
+                ", role=" + role +
+                ", tokens=" + tokens +
+                '}';
+    }
 }
